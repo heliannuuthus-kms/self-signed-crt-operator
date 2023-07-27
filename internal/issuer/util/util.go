@@ -17,60 +17,61 @@ limitations under the License.
 package util
 
 import (
-	"fmt"
+	"context"
+	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/clock"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	piv1alpha1api "github.com/heliannuuthus/privateca-issuer/api/v1alpha1"
 )
 
-func GetSpecAndStatus(issuer client.Object) (*piv1alpha1api.IssuerSpec, *piv1alpha1api.IssuerStatus, error) {
-	switch t := issuer.(type) {
-	case *piv1alpha1api.Issuer:
-		return &t.Spec, &t.Status, nil
-	case *piv1alpha1api.ClusterIssuer:
-		return &t.Spec, &t.Status, nil
-	default:
-		return nil, nil, fmt.Errorf("not an issuer type: %t", t)
+var realtimeClock clock.Clock = clock.RealClock{}
+
+// GetIssuer returns either an ClusterIssuer or AWSPCAIssuer by its name
+func GetIssuer(ctx context.Context, client client.Client, name types.NamespacedName) (piv1alpha1api.GenericIssuer, error) {
+	iss := new(piv1alpha1api.Issuer)
+	err := client.Get(ctx, name, iss)
+	if err != nil {
+		ciss := new(piv1alpha1api.ClusterIssuer)
+		cname := types.NamespacedName{
+			Name: name.Name,
+		}
+		err = client.Get(ctx, cname, ciss)
+		if err != nil {
+			return nil, err
+		}
+		return ciss, nil
 	}
+	return iss, nil
 }
 
-func SetReadyCondition(status *piv1alpha1api.IssuerStatus, conditionStatus piv1alpha1api.ConditionStatus, reason, message string) {
-	ready := GetReadyCondition(status)
-	if ready == nil {
-		ready = &piv1alpha1api.IssuerCondition{
-			Type: piv1alpha1api.IssuerConditionReady,
-		}
-		status.Conditions = append(status.Conditions, *ready)
+// SetIssuerCondition sets the ready state of an issuer and updates it in the cluster
+func SetIssuerCondition(log logr.Logger, issuer piv1alpha1api.GenericIssuer, conditionType string,
+	status metav1.ConditionStatus, reason, message string) {
+	newCondition := metav1.Condition{
+		Type:    conditionType,
+		Status:  status,
+		Reason:  reason,
+		Message: message,
 	}
-	if ready.Status != conditionStatus {
-		ready.Status = conditionStatus
-		now := metav1.Now()
-		ready.LastTransitionTime = &now
-	}
-	ready.Reason = reason
-	ready.Message = message
 
-	for i, c := range status.Conditions {
-		if c.Type == piv1alpha1api.IssuerConditionReady {
-			status.Conditions[i] = *ready
-			return
-		}
-	}
-}
+	now := metav1.NewTime(realtimeClock.Now())
+	newCondition.LastTransitionTime = now
 
-func GetReadyCondition(status *piv1alpha1api.IssuerStatus) *piv1alpha1api.IssuerCondition {
-	for _, c := range status.Conditions {
-		if c.Type == piv1alpha1api.IssuerConditionReady {
-			return &c
+	for idx, cond := range issuer.GetStatus().Conditions {
+		if cond.Type != conditionType {
+			continue
 		}
-	}
-	return nil
-}
 
-func IsReady(status *piv1alpha1api.IssuerStatus) bool {
-	if c := GetReadyCondition(status); c != nil {
-		return c.Status == piv1alpha1api.ConditionTrue
+		if cond.Status == status {
+			newCondition.LastTransitionTime = cond.LastTransitionTime
+		}
+
+		issuer.GetStatus().Conditions[idx] = newCondition
+		return
 	}
-	return false
+
+	issuer.GetStatus().Conditions = append(issuer.GetStatus().Conditions, newCondition)
 }

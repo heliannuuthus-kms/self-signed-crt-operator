@@ -32,7 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/heliannuuthus/privateca-issuer/internal/controller"
+	"github.com/heliannuuthus/privateca-issuer/internal/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -55,8 +55,8 @@ func main() {
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
+		"Enable leader election for controllers manager. "+
+			"Enabling this will ensure there is only one active controllers manager.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -89,18 +89,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.IssuerReconciler{
+	if err = (&controllers.IssuerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Issuer")
+		setupLog.Error(err, "unable to create controllers", "controllers", "Issuer")
 		os.Exit(1)
 	}
-	if err = (&controller.ClusterIssuerReconciler{
+	if err = (&controllers.ClusterIssuerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ClusterIssuer")
+		setupLog.Error(err, "unable to create controllers", "controllers", "ClusterIssuer")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

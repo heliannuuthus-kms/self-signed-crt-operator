@@ -29,8 +29,8 @@ type IssuerSpec struct {
 	// A reference to a Secret in the same namespace as the referent. If the
 	// referent is a ClusterIssuer, the reference instead refers to the resource
 	// with the given name in the configured 'cluster resource namespace', which
-	// is set as a flag on the controller component (and defaults to the
-	// namespace that the controller runs in).
+	// is set as a flag on the controllers component (and defaults to the
+	// namespace that the controllers runs in).
 	AuthSecretName string `json:"authSecretName"`
 }
 
@@ -39,8 +39,10 @@ type IssuerStatus struct {
 	// List of status conditions to indicate the status of a CertificateRequest.
 	// Known condition types are `Ready`.
 	// +optional
-	Conditions []IssuerCondition `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
+
+const ConditionTypeReady = "Ready"
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
@@ -63,61 +65,30 @@ type IssuerList struct {
 	Items           []Issuer `json:"items"`
 }
 
-// IssuerCondition contains condition information for an Issuer.
-type IssuerCondition struct {
-	// Type of the condition, known values are ('Ready').
-	Type IssuerConditionType `json:"type"`
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
-	// Status of the condition, one of ('True', 'False', 'Unknown').
-	Status ConditionStatus `json:"status"`
+// ClusterIssuer is the Schema for the clusterissuers API
+// +kubebuilder:resource:path=clusterissuers,scope=Cluster
+type ClusterIssuer struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// LastTransitionTime is the timestamp corresponding to the last status
-	// change of this condition.
-	// +optional
-	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
-
-	// Reason is a brief machine readable explanation for the condition's last
-	// transition.
-	// +optional
-	Reason string `json:"reason,omitempty"`
-
-	// Message is a human readable description of the details of the last
-	// transition, complementing reason.
-	// +optional
-	Message string `json:"message,omitempty"`
+	Spec   IssuerSpec   `json:"spec,omitempty"`
+	Status IssuerStatus `json:"status,omitempty"`
 }
 
-// IssuerConditionType represents an Issuer condition value.
-type IssuerConditionType string
+// +kubebuilder:object:root=true
 
-const (
-	// IssuerConditionReady represents the fact that a given Issuer condition
-	// is in ready state and able to issue certificates.
-	// If the `status` of this condition is `False`, CertificateRequest controllers
-	// should prevent attempts to sign certificates.
-	IssuerConditionReady IssuerConditionType = "Ready"
-)
-
-// ConditionStatus represents a condition's status.
-// +kubebuilder:validation:Enum=True;False;Unknown
-type ConditionStatus string
-
-// These are valid condition statuses. "ConditionTrue" means a resource is in
-// the condition; "ConditionFalse" means a resource is not in the condition;
-// "ConditionUnknown" means kubernetes can't decide if a resource is in the
-// condition or not. In the future, we could add other intermediate
-// conditions, e.g. ConditionDegraded.
-const (
-	// ConditionTrue represents the fact that a given condition is true
-	ConditionTrue ConditionStatus = "True"
-
-	// ConditionFalse represents the fact that a given condition is false
-	ConditionFalse ConditionStatus = "False"
-
-	// ConditionUnknown represents the fact that a given condition is unknown
-	ConditionUnknown ConditionStatus = "Unknown"
-)
+// ClusterIssuerList contains a list of ClusterIssuer
+type ClusterIssuerList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []ClusterIssuer `json:"items"`
+}
 
 func init() {
 	SchemeBuilder.Register(&Issuer{}, &IssuerList{})
+	SchemeBuilder.Register(&ClusterIssuer{}, &ClusterIssuerList{})
+
 }

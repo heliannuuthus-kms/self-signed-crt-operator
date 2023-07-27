@@ -22,7 +22,7 @@
 //	"flag"
 //	"fmt"
 //	piv1alpha1api "github.com/heliannuuthus/privateca-issuer/api/v1alpha1"
-//	"github.com/heliannuuthus/privateca-issuer/internal/controller"
+//	"github.com/heliannuuthus/privateca-issuer/internal/controllers"
 //	"github.com/heliannuuthus/privateca-issuer/internal/issuer/signer"
 //	"github.com/heliannuuthus/privateca-issuer/internal/version"
 //	"os"
@@ -36,8 +36,8 @@
 //	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 //	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 //	"k8s.io/utils/clock"
-//	ctrl "sigs.k8s.io/controller-runtime"
-//	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+//	ctrl "sigs.k8s.io/controllers-runtime"
+//	"sigs.k8s.io/controllers-runtime/pkg/log/zap"
 //	//+kubebuilder:scaffold:imports
 //
 // )
@@ -69,8 +69,8 @@
 //		flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 //		flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 //		flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-//			"Enable leader election for controller manager. "+
-//				"Enabling this will ensure there is only one active controller manager.")
+//			"Enable leader election for controllers manager. "+
+//				"Enabling this will ensure there is only one active controllers manager.")
 //		flag.StringVar(&clusterResourceNamespace, "cluster-resource-namespace", "", "The namespace for secrets in which cluster-scoped resources are found.")
 //		flag.BoolVar(&printVersion, "version", false, "Print version to stdout and exit")
 //		flag.BoolVar(&disableApprovedCheck, "disable-approved-check", false,
@@ -134,28 +134,28 @@
 //			os.Exit(1)
 //		}
 //
-//		if err = (&controller.IssuerReconciler{
+//		if err = (&controllers.IssuerReconciler{
 //			Kind:                     "Issuer",
 //			Client:                   mgr.GetClient(),
 //			Scheme:                   mgr.GetScheme(),
 //			ClusterResourceNamespace: clusterResourceNamespace,
 //			HealthCheckerBuilder:     signer.ExampleHealthCheckerFromIssuerAndSecretData,
 //		}).SetupWithManager(mgr); err != nil {
-//			setupLog.Error(err, "unable to create controller", "controller", "Issuer")
+//			setupLog.Error(err, "unable to create controllers", "controllers", "Issuer")
 //			os.Exit(1)
 //		}
-//		if err = (&controller.IssuerReconciler{
+//		if err = (&controllers.IssuerReconciler{
 //			Kind:                     "ClusterIssuer",
 //			Client:                   mgr.GetClient(),
 //			Scheme:                   mgr.GetScheme(),
 //			ClusterResourceNamespace: clusterResourceNamespace,
 //			HealthCheckerBuilder:     signer.ExampleHealthCheckerFromIssuerAndSecretData,
 //		}).SetupWithManager(mgr); err != nil {
-//			setupLog.Error(err, "unable to create controller", "controller", "ClusterIssuer")
+//			setupLog.Error(err, "unable to create controllers", "controllers", "ClusterIssuer")
 //			os.Exit(1)
 //		}
 //
-//		if err = (&controller.CertificateRequestReconciler{
+//		if err = (&controllers.CertificateRequestReconciler{
 //			Client:                   mgr.GetClient(),
 //			Scheme:                   mgr.GetScheme(),
 //			ClusterResourceNamespace: clusterResourceNamespace,
@@ -163,7 +163,7 @@
 //			CheckApprovedCondition:   !disableApprovedCheck,
 //			Clock:                    clock.RealClock{},
 //		}).SetupWithManager(mgr); err != nil {
-//			setupLog.Error(err, "unable to create controller", "controller", "CertificateRequest")
+//			setupLog.Error(err, "unable to create controllers", "controllers", "CertificateRequest")
 //			os.Exit(1)
 //		}
 //		// +kubebuilder:scaffold:builder
@@ -177,7 +177,7 @@
 //
 // var errNotInCluster = errors.New("not running in-cluster")
 //
-// // Copied from controller-runtime/pkg/leaderelection
+// // Copied from controllers-runtime/pkg/leaderelection
 //
 //	func getInClusterNamespace() (string, error) {
 //		// Check whether the namespace file exists.
