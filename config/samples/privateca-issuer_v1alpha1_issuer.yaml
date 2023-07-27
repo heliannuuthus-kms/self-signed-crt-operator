@@ -1,0 +1,13 @@
+apiVersion: privateca-issuer.gitlabee.chehejia.com/v1alpha1
+kind: Issuer
+metadata:
+  labels:
+    app.kubernetes.io/name: issuer
+    app.kubernetes.io/instance: issuer-sample
+    app.kubernetes.io/part-of: privateca-issuer
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: privateca-issuer
+  name: issuer-sample
+  namespace: cert-manager
+spec:
+  # TODO(user): Add fields here
