@@ -28,69 +28,69 @@ type GenericIssuer interface {
 	metav1.Object
 
 	GetObjectMeta() *metav1.ObjectMeta
-	GetSpec() *IssuerSpec
-	GetStatus() *IssuerStatus
+	GetSpec() *CAIssuerSpec
+	GetStatus() *CAIssuerStatus
 }
 
-var _ GenericIssuer = &Issuer{}
-var _ GenericIssuer = &ClusterIssuer{}
+var _ GenericIssuer = &CAIssuer{}
+var _ GenericIssuer = &ClusterCAIssuer{}
 
 // GetObjectMeta returns the k8s object metadata
-func (c *ClusterIssuer) GetObjectMeta() *metav1.ObjectMeta {
+func (c *ClusterCAIssuer) GetObjectMeta() *metav1.ObjectMeta {
 	return &c.ObjectMeta
 }
 
 // GetSpec returns the issuer spec
-func (c *ClusterIssuer) GetSpec() *IssuerSpec {
+func (c *ClusterCAIssuer) GetSpec() *CAIssuerSpec {
 	return &c.Spec
 }
 
 // GetStatus returns the issuer status
-func (c *ClusterIssuer) GetStatus() *IssuerStatus {
+func (c *ClusterCAIssuer) GetStatus() *CAIssuerStatus {
 	return &c.Status
 }
 
 // SetSpec sets the issuer spec
-func (c *ClusterIssuer) SetSpec(spec IssuerSpec) {
+func (c *ClusterCAIssuer) SetSpec(spec CAIssuerSpec) {
 	c.Spec = spec
 }
 
 // SetStatus sets the issuer status
-func (c *ClusterIssuer) SetStatus(status IssuerStatus) {
+func (c *ClusterCAIssuer) SetStatus(status CAIssuerStatus) {
 	c.Status = status
 }
 
 // Copy deep copies the issuer
-func (c *ClusterIssuer) Copy() GenericIssuer {
+func (c *ClusterCAIssuer) Copy() GenericIssuer {
 	return c.DeepCopy()
 }
 
 // GetObjectMeta returns the k8s object metadata
-func (c *Issuer) GetObjectMeta() *metav1.ObjectMeta {
+func (c *CAIssuer) GetObjectMeta() *metav1.ObjectMeta {
 	return &c.ObjectMeta
 }
 
 // GetSpec returns the issuer spec
-func (c *Issuer) GetSpec() *IssuerSpec {
+func (c *CAIssuer) GetSpec() *CAIssuerSpec {
 	return &c.Spec
 }
 
 // GetStatus returns the issuer status
-func (c *Issuer) GetStatus() *IssuerStatus {
+func (c *CAIssuer) GetStatus() *CAIssuerStatus {
 	return &c.Status
 }
 
 // SetSpec sets the issuer spec
-func (c *Issuer) SetSpec(spec IssuerSpec) {
+func (c *CAIssuer) SetSpec(spec CAIssuerSpec) {
 	c.Spec = spec
 }
 
 // SetStatus sets the issuer status
-func (c *Issuer) SetStatus(status IssuerStatus) {
+func (c *CAIssuer) SetStatus(status CAIssuerStatus) {
 	c.Status = status
 }
 
 // Copy deep copies the issuer
-func (c *Issuer) Copy() GenericIssuer {
+func (c *CAIssuer) Copy() GenericIssuer {
 	return c.DeepCopy()
 }

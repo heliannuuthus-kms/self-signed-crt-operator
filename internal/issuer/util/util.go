@@ -29,12 +29,12 @@ import (
 
 var realtimeClock clock.Clock = clock.RealClock{}
 
-// GetIssuer returns either an ClusterIssuer or AWSPCAIssuer by its name
+// GetIssuer returns either an ClusterCAIssuer or CAIssuer by its name
 func GetIssuer(ctx context.Context, client client.Client, name types.NamespacedName) (piv1alpha1api.GenericIssuer, error) {
-	iss := new(piv1alpha1api.Issuer)
+	iss := new(piv1alpha1api.CAIssuer)
 	err := client.Get(ctx, name, iss)
 	if err != nil {
-		ciss := new(piv1alpha1api.ClusterIssuer)
+		ciss := new(piv1alpha1api.ClusterCAIssuer)
 		cname := types.NamespacedName{
 			Name: name.Name,
 		}

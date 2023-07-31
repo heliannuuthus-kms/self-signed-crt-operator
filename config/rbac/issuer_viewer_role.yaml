@@ -12,7 +12,7 @@ metadata:
   name: issuer-viewer-role
 rules:
 - apiGroups:
-  - privateca-issuer.gitlabee.chehejia.com
+  - privateca-issuer.github.com
   resources:
   - issuers
   verbs:
@@ -20,7 +20,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - privateca-issuer.gitlabee.chehejia.com
+  - privateca-issuer.github.com
   resources:
   - issuers/status
   verbs:

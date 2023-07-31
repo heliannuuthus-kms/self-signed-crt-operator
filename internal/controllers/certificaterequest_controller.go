@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/heliannuuthus/privateca-issuer/internal/issuer/secret"
+	"github.com/heliannuuthus/privateca-issuer/internal/issuer/signer"
 	"github.com/heliannuuthus/privateca-issuer/internal/issuer/util"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
@@ -39,14 +41,15 @@ import (
 	piv1alpha1api "github.com/heliannuuthus/privateca-issuer/api/v1alpha1"
 )
 
-// CertificateRequestReconciler reconciles a AWSPCAIssuer object
+// CertificateRequestReconciler reconciles a CAIssuer object
 type CertificateRequestReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
-
+	Log                    logr.Logger
+	Scheme                 *runtime.Scheme
+	Recorder               record.EventRecorder
+	Builder                signer.Builder
 	Clock                  clock.Clock
+	secretManager          secret.Manager
 	CheckApprovedCondition bool
 }
 
@@ -135,13 +138,15 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		Namespace: cr.Namespace,
 		Name:      cr.Spec.IssuerRef.Name,
 	}
-	if cr.Spec.IssuerRef.Kind == "ClusterIssuer" {
+
+	if cr.Spec.IssuerRef.Kind == "ClusterCAIssuer" {
 		issuerName.Namespace = ""
 	}
-
+	// getOrDefault(issuer, clusterIssuer)
 	iss, err := util.GetIssuer(ctx, r.Client, issuerName)
+
 	if err != nil {
-		log.Error(err, "failed to retrieve Issuer resource")
+		log.Error(err, "failed to retrieve CAIssuer resource")
 		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "issuer could not be found")
 		return ctrl.Result{}, err
 	}
@@ -151,14 +156,25 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "issuer is not ready")
 		return ctrl.Result{}, err
 	}
+	if iss.GetSpec().CASecretName != "" {
+		if r.secretManager, err = secret.NewSecretsManager(ctx, r.Client, types.NamespacedName{Name: iss.GetSpec().CASecretName, Namespace: cr.GetNamespace()}); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to get Secret containing Issuer credentials, secret name: %s, reason: %v", iss.GetSpec().CASecretName, err)
+		}
+	} else {
+		r.secretManager = secret.NewPKIManager()
+	}
 
-	pem, ca, err := provisioner.Sign(ctx, cr, log)
+	var caSigner signer.Signer
+	if caSigner, err = r.Builder(r.secretManager); err != nil {
+		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "failed to request certificate from PCA: "+err.Error())
+	}
+	pem, rootPem, err := caSigner.Sign(ctx, cr, log)
 	if err != nil {
 		log.Error(err, "failed to request certificate from PCA")
 		return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "failed to request certificate from PCA: "+err.Error())
 	}
 	cr.Status.Certificate = pem
-	cr.Status.CA = ca
+	cr.Status.CA = rootPem
 
 	return ctrl.Result{}, r.setStatus(ctx, cr, cmmeta.ConditionTrue, cmapi.CertificateRequestReasonIssued, "certificate issued")
 }

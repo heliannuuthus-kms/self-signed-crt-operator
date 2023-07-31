@@ -2,9 +2,10 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: gitlabee.chehejia.com
+domain: github.com
 layout:
 - go.kubebuilder.io/v4
+multigroup: true
 projectName: privateca-issuer
 repo: github.com/heliannuuthus/privateca-issuer
 resources:
@@ -12,7 +13,7 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: gitlabee.chehejia.com
+  domain: github.com
   group: privateca-issuer
   kind: Issuer
   path: github.com/heliannuuthus/privateca-issuer/api/v1alpha1
@@ -20,7 +21,7 @@ resources:
 - api:
     crdVersion: v1
   controller: true
-  domain: gitlabee.chehejia.com
+  domain: github.com
   group: privateca-issuer
   kind: ClusterIssuer
   path: github.com/heliannuuthus/privateca-issuer/api/v1alpha1

@@ -1,0 +1,11 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: heliannuuthus-clustcaissuer-certificate
+spec:
+  commonName: certificate-by-clusterissuer.example.com
+  secretName: certificate-by-heliannuuthus-clustercaissuer
+  issuerRef:
+    name: heliannuuthus-clustercaissuer-sample
+    group: privateca-issuer.github.com
+    kind: ClusterCAIssuer

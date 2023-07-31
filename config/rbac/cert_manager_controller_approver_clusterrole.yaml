@@ -1,0 +1,15 @@
+# permissions to approve all awspca.cert-manager.io requests
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-controller-approve:heliannuuthus-github-com
+rules:
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - signers
+  verbs:
+  - approve
+  resourceNames:
+  - clustercaissuers.privateca-issuer.github.com/*
+  - caissuers.privateca-issuer.github.com/*

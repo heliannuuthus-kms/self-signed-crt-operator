@@ -1,0 +1,7 @@
+apiVersion: privateca-issuer.github.com/v1alpha1
+kind: CAIssuer
+metadata:
+  name: heliannuuthus-caissuer-sample
+  namespace: cert-manager
+spec:
+  CASecretName: heliannuuthus-caissuer-credentials
