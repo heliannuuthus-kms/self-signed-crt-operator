@@ -8,4 +8,4 @@ spec:
   issuerRef:
     name: heliannuuthus-clustercaissuer-sample
     group: privateca-issuer.github.com
-    kind: ClusterCAIssuer
+    kind: ClusterSelfSignedIssuer

@@ -1,19 +1,3 @@
-/*
-Copyright 2021 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
@@ -30,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// GenericIssuerReconciler reconciles both CAIssuer and ClusterCAIssuer objects
+// GenericIssuerReconciler reconciles both SelfSignedIssuer and ClusterSelfSignedIssuer objects
 type GenericIssuerReconciler struct {
 	client.Client
 	Log      logr.Logger
@@ -53,7 +37,7 @@ func (r *GenericIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, r.setStatus(ctx, issuer, metav1.ConditionTrue, "Verified", "CAIssuer verified")
+	return ctrl.Result{}, r.setStatus(ctx, issuer, metav1.ConditionTrue, "Verified", "SelfSignedIssuer verified")
 }
 
 func (r *GenericIssuerReconciler) setStatus(ctx context.Context, issuer api.GenericIssuer, status metav1.ConditionStatus, reason, message string, args ...interface{}) error {
@@ -69,6 +53,6 @@ func (r *GenericIssuerReconciler) setStatus(ctx context.Context, issuer api.Gene
 	return r.Client.Status().Update(ctx, issuer)
 }
 
-func validateIssuer(spec *api.CAIssuerSpec) error {
+func validateIssuer(spec *api.SelfSignedIssuerSpec) error {
 	return nil
 }

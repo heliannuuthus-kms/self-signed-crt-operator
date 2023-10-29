@@ -1,5 +1,5 @@
 apiVersion: privateca-issuer.github.com/v1alpha1
-kind: ClusterCAIssuer
+kind: ClusterSelfSignedIssuer
 metadata:
   name: heliannuuthus-clustercaissuer-sample
 spec:

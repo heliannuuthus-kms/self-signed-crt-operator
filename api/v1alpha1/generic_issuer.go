@@ -1,19 +1,3 @@
-/*
-Copyright 2021 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package v1alpha1
 
 import (
@@ -28,69 +12,69 @@ type GenericIssuer interface {
 	metav1.Object
 
 	GetObjectMeta() *metav1.ObjectMeta
-	GetSpec() *CAIssuerSpec
-	GetStatus() *CAIssuerStatus
+	GetSpec() *SelfSignedIssuerSpec
+	GetStatus() *SelfSignedIssuerStatus
 }
 
-var _ GenericIssuer = &CAIssuer{}
-var _ GenericIssuer = &ClusterCAIssuer{}
+var _ GenericIssuer = &SelfSignedIssuer{}
+var _ GenericIssuer = &ClusterSelfSignedIssuer{}
 
 // GetObjectMeta returns the k8s object metadata
-func (c *ClusterCAIssuer) GetObjectMeta() *metav1.ObjectMeta {
+func (c *ClusterSelfSignedIssuer) GetObjectMeta() *metav1.ObjectMeta {
 	return &c.ObjectMeta
 }
 
 // GetSpec returns the issuer spec
-func (c *ClusterCAIssuer) GetSpec() *CAIssuerSpec {
+func (c *ClusterSelfSignedIssuer) GetSpec() *SelfSignedIssuerSpec {
 	return &c.Spec
 }
 
 // GetStatus returns the issuer status
-func (c *ClusterCAIssuer) GetStatus() *CAIssuerStatus {
+func (c *ClusterSelfSignedIssuer) GetStatus() *SelfSignedIssuerStatus {
 	return &c.Status
 }
 
 // SetSpec sets the issuer spec
-func (c *ClusterCAIssuer) SetSpec(spec CAIssuerSpec) {
+func (c *ClusterSelfSignedIssuer) SetSpec(spec SelfSignedIssuerSpec) {
 	c.Spec = spec
 }
 
 // SetStatus sets the issuer status
-func (c *ClusterCAIssuer) SetStatus(status CAIssuerStatus) {
+func (c *ClusterSelfSignedIssuer) SetStatus(status SelfSignedIssuerStatus) {
 	c.Status = status
 }
 
 // Copy deep copies the issuer
-func (c *ClusterCAIssuer) Copy() GenericIssuer {
+func (c *ClusterSelfSignedIssuer) Copy() GenericIssuer {
 	return c.DeepCopy()
 }
 
 // GetObjectMeta returns the k8s object metadata
-func (c *CAIssuer) GetObjectMeta() *metav1.ObjectMeta {
+func (c *SelfSignedIssuer) GetObjectMeta() *metav1.ObjectMeta {
 	return &c.ObjectMeta
 }
 
 // GetSpec returns the issuer spec
-func (c *CAIssuer) GetSpec() *CAIssuerSpec {
+func (c *SelfSignedIssuer) GetSpec() *SelfSignedIssuerSpec {
 	return &c.Spec
 }
 
 // GetStatus returns the issuer status
-func (c *CAIssuer) GetStatus() *CAIssuerStatus {
+func (c *SelfSignedIssuer) GetStatus() *SelfSignedIssuerStatus {
 	return &c.Status
 }
 
 // SetSpec sets the issuer spec
-func (c *CAIssuer) SetSpec(spec CAIssuerSpec) {
+func (c *SelfSignedIssuer) SetSpec(spec SelfSignedIssuerSpec) {
 	c.Spec = spec
 }
 
 // SetStatus sets the issuer status
-func (c *CAIssuer) SetStatus(status CAIssuerStatus) {
+func (c *SelfSignedIssuer) SetStatus(status SelfSignedIssuerStatus) {
 	c.Status = status
 }
 
 // Copy deep copies the issuer
-func (c *CAIssuer) Copy() GenericIssuer {
+func (c *SelfSignedIssuer) Copy() GenericIssuer {
 	return c.DeepCopy()
 }

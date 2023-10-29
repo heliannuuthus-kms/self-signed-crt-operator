@@ -1,19 +1,3 @@
-/*
-Copyright 2021 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
@@ -41,7 +25,7 @@ import (
 	piv1alpha1api "github.com/heliannuuthus/privateca-issuer/api/v1alpha1"
 )
 
-// CertificateRequestReconciler reconciles a CAIssuer object
+// CertificateRequestReconciler reconciles a SelfSignedIssuer object
 type CertificateRequestReconciler struct {
 	client.Client
 	Log                    logr.Logger
@@ -139,14 +123,14 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		Name:      cr.Spec.IssuerRef.Name,
 	}
 
-	if cr.Spec.IssuerRef.Kind == "ClusterCAIssuer" {
+	if cr.Spec.IssuerRef.Kind == "ClusterSelfSignedIssuer" {
 		issuerName.Namespace = ""
 	}
 	// getOrDefault(issuer, clusterIssuer)
 	iss, err := util.GetIssuer(ctx, r.Client, issuerName)
 
 	if err != nil {
-		log.Error(err, "failed to retrieve CAIssuer resource")
+		log.Error(err, "failed to retrieve SelfSignedIssuer resource")
 		_ = r.setStatus(ctx, cr, cmmeta.ConditionFalse, cmapi.CertificateRequestReasonFailed, "issuer could not be found")
 		return ctrl.Result{}, err
 	}

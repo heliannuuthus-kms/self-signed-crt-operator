@@ -9,4 +9,4 @@ spec:
   issuerRef:
     name: heliannuuthus-caissuer-sample
     group: privateca-issuer.github.com
-    kind: CAIssuer
+    kind: SelfSignedIssuer

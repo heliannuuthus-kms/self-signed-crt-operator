@@ -1,5 +1,5 @@
 apiVersion: privateca-issuer.github.com/v1alpha1
-kind: CAIssuer
+kind: SelfSignedIssuer
 metadata:
   name: heliannuuthus-caissuer-sample
   namespace: cert-manager
