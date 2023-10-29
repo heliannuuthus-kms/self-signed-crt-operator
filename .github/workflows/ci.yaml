@@ -1,0 +1,25 @@
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  lint:
+    uses: heliannuuthus/workflow/.github/workflows/call-golang-lint.yml@master
+
+
+  build:
+    uses: heliannuuthus/workflow/.github/workflows/call-golang-build.yml@master
+    with:
+      GOOS: linux
+      GOARCH: amd64
+      ENTRANCE: cmd/main.go
+
+
+  containeraized:
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+    uses: heliannuuthus/workflow/.github/workflows/call-containerize.yml@master
+    with:
+      version: ${{ needs.build.outputs.version }}
