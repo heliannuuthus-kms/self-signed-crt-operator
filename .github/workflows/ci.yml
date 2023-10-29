@@ -8,6 +8,7 @@ jobs:
 
 
   build:
+    needs: lint
     uses: heliannuuthus/workflow/.github/workflows/call-golang-build.yml@master
     with:
       GOOS: linux

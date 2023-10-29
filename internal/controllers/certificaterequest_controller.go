@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/heliannuuthus/privateca-issuer/internal/issuer/secret"
+	"github.com/heliannuuthus/privateca-issuer/internal/issuer/secrets"
 	"github.com/heliannuuthus/privateca-issuer/internal/issuer/signer"
-	"github.com/heliannuuthus/privateca-issuer/internal/issuer/util"
+	"github.com/heliannuuthus/privateca-issuer/internal/utils"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -33,7 +33,6 @@ type CertificateRequestReconciler struct {
 	Recorder               record.EventRecorder
 	Builder                signer.Builder
 	Clock                  clock.Clock
-	secretManager          secret.Manager
 	CheckApprovedCondition bool
 }
 
@@ -127,7 +126,7 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		issuerName.Namespace = ""
 	}
 	// getOrDefault(issuer, clusterIssuer)
-	iss, err := util.GetIssuer(ctx, r.Client, issuerName)
+	iss, err := utils.GetIssuer(ctx, r.Client, issuerName)
 
 	if err != nil {
 		log.Error(err, "failed to retrieve SelfSignedIssuer resource")
@@ -141,11 +140,11 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, err
 	}
 	if iss.GetSpec().CASecretName != "" {
-		if r.secretManager, err = secret.NewSecretsManager(ctx, r.Client, types.NamespacedName{Name: iss.GetSpec().CASecretName, Namespace: cr.GetNamespace()}); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to get Secret containing Issuer credentials, secret name: %s, reason: %v", iss.GetSpec().CASecretName, err)
+		if r.secretManager, err = secrets.NewSecretsManager(ctx, r.Client, types.NamespacedName{Name: iss.GetSpec().CASecretName, Namespace: cr.GetNamespace()}); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to get Secret containing Issuer credentials, secrets name: %s, reason: %v", iss.GetSpec().CASecretName, err)
 		}
 	} else {
-		r.secretManager = secret.NewPKIManager()
+		r.secretManager = secrets.NewPKIManager()
 	}
 
 	var caSigner signer.Signer

@@ -11,21 +11,21 @@ import (
 	"fmt"
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/go-logr/logr"
-	"github.com/heliannuuthus/privateca-issuer/internal/issuer/secret"
+	"github.com/heliannuuthus/privateca-issuer/internal/issuer/secrets"
 	capi "k8s.io/api/certificates/v1beta1"
 	"math/big"
 	"time"
 )
 
 type webCaSigner struct {
-	secretManager secret.Manager
+	secretManager secrets.Manager
 }
 
 func (o *webCaSigner) Check() error {
 	return nil
 }
 
-func NewCASinger(secretManager secret.Manager) (Signer, error) {
+func NewCASinger(secretManager secrets.Manager) (Signer, error) {
 	return &webCaSigner{secretManager: secretManager}, nil
 }
 
@@ -37,7 +37,7 @@ func (o *webCaSigner) Sign(ctx context.Context, cr *cmapi.CertificateRequest, lo
 	}
 	priKey, err := o.secretManager.GetPriKey()
 	if err != nil {
-		log.V(4).Error(err, "secret get priKey failed")
+		log.V(4).Error(err, "secrets get priKey failed")
 		return nil, nil, err
 	}
 	key, err := toRsaPriKey(priKey)
