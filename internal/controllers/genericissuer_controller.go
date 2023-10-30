@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	api "github.com/heliannuuthus/privateca-issuer/api/v1alpha1"
-	"github.com/heliannuuthus/privateca-issuer/internal/issuer/util"
+	"github.com/heliannuuthus/privateca-issuer/internal/utils"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,7 +43,7 @@ func (r *GenericIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 func (r *GenericIssuerReconciler) setStatus(ctx context.Context, issuer api.GenericIssuer, status metav1.ConditionStatus, reason, message string, args ...interface{}) error {
 	log := r.Log.WithValues("genericissuer", issuer.GetName())
 	completeMessage := fmt.Sprintf(message, args...)
-	util.SetIssuerCondition(log, issuer, api.ConditionTypeReady, status, reason, completeMessage)
+	utils.SetIssuerCondition(log, issuer, api.ConditionTypeReady, status, reason, completeMessage)
 
 	eventType := core.EventTypeNormal
 	if status == metav1.ConditionFalse {
