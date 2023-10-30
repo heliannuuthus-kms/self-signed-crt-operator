@@ -10,25 +10,23 @@ import (
 )
 
 type secretWatcher interface {
-	secretLoader
-	Watch(string) error
-	Notify()
+	Watch(...string) error
+	Notify(updated func(string, []byte) error)
 }
 
 type FileSecretWatcher struct {
-	secretLoader
 	watcher *fsnotify.Watcher
 	files   cmap.ConcurrentMap[string, []string]
 }
 
-func NewFileSecretWatcher(loader secretLoader) (*FileSecretWatcher, error) {
+func NewFileSecretWatcher(updated func(string, []byte) error) (*FileSecretWatcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
-	self := &FileSecretWatcher{secretLoader: loader, watcher: watcher, files: cmap.New[[]string]()}
+	self := &FileSecretWatcher{watcher: watcher, files: cmap.New[[]string]()}
 
-	go self.Notify()
+	go self.Notify(updated)
 
 	return self, nil
 
@@ -79,27 +77,44 @@ func (fsw *FileSecretWatcher) Watch(files ...string) error {
 	return nil
 }
 
-func (fsw *FileSecretWatcher) Notify() {
+func (fsw *FileSecretWatcher) Notify(updated func(string, []byte) error) {
 	for {
 		select {
 		// Read from Errors.
 		case err, ok := <-fsw.watcher.Errors:
 			if !ok { // Channel was closed (i.e. Watcher.Close() was called).
+				utils.Logger.V(4).Info("watcher errors chan is closed")
 				return
 			}
-			utils.Logger.V(4).Error(err, "remove file watch signal failed, path: %s", f)
+			utils.Logger.V(4).Error(err, "remove file watch signal failed")
 		// Read from Events.
 		case e, ok := <-fsw.watcher.Events:
 			if !ok {
+				utils.Logger.V(4).Info("watcher events chan is closed")
 				return
 			}
+			found := false
+			if files, ok := fsw.files.Get(filepath.Dir(e.Name)); ok {
+				for _, f := range files {
+					if f == e.Name {
+						found = true
+						break
+					}
+				}
+			}
+
+			if !found {
+				utils.Logger.V(-1).Info("file change", "file", e.Name, "op", e.Op)
+				continue
+			}
+
 			if e.Op&fsnotify.Create == fsnotify.Create || e.Op&fsnotify.Write == fsnotify.Write {
 				file, err := os.ReadFile(e.Name)
 				if err != nil {
 					utils.Logger.V(4).Error(err, "read file failed", "file", e.Name, "state", e.Op)
 					continue
 				}
-				err = fsw.Update(e.Name, file)
+				err = updated(e.Name, file)
 				if err != nil {
 					utils.Logger.V(4).Error(err, "watching file update failed", "file", e.Name, "state", e.Op)
 					continue
@@ -110,7 +125,7 @@ func (fsw *FileSecretWatcher) Notify() {
 					utils.Logger.V(4).Error(err, "read file failed failed", "file", e.Name, "state", e.Op)
 					continue
 				}
-				err = fsw.Update(e.Name, file)
+				err = updated(e.Name, file)
 				if err != nil {
 					utils.Logger.V(4).Error(err, "watching file load failed", "file", e.Name, "state", e.Op)
 				}

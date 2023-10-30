@@ -1,8 +1,8 @@
 package secrets
 
 import (
-	"github.com/fsnotify/fsnotify"
 	cmap "github.com/orcaman/concurrent-map/v2"
+	"os"
 )
 
 type secretLoader interface {
@@ -12,11 +12,18 @@ type secretLoader interface {
 }
 
 type FileSecretLoader struct {
+	secretWatcher
 	cache cmap.ConcurrentMap[string, []byte]
 }
 
-func NewFileSecretLoader() *FileSecretLoader {
-	return &FileSecretLoader{cache: cmap.New[[]byte]()}
+func NewFileSecretLoader() (secretLoader, error) {
+	loader := &FileSecretLoader{cache: cmap.New[[]byte]()}
+	watcher, err := NewFileSecretWatcher(loader.Update)
+	if err != nil {
+		return nil, err
+	}
+	loader.secretWatcher = watcher
+	return loader, nil
 }
 
 func (fsl *FileSecretLoader) Load(path string) ([]byte, error) {
@@ -25,22 +32,31 @@ func (fsl *FileSecretLoader) Load(path string) ([]byte, error) {
 		return keys, nil
 	}
 
-	watcher, err := fsnotify.NewWatcher()
+	file, err := os.ReadFile(path)
 	if err != nil {
-
 		return nil, err
 	}
+
+	err = fsl.Watch(path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	fsl.cache.Set(path, file)
+
+	return file, nil
 }
 
-func (fsl *FileSecretLoader) Offload(path string) ([]byte, error) {
+func (fsl *FileSecretLoader) Offload(path string) error {
 
-	if keys, ok := fsl.cache.Get(path); ok {
-		return keys, nil
-	}
+	fsl.cache.Remove(path)
+	return nil
+}
 
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
+func (fsl *FileSecretLoader) Update(path string, keys []byte) error {
 
-		return nil, err
-	}
+	fsl.cache.Set(path, keys)
+
+	return nil
 }

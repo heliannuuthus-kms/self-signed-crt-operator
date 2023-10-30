@@ -11,53 +11,41 @@ import (
 	"fmt"
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/go-logr/logr"
-	"github.com/heliannuuthus/privateca-issuer/internal/issuer/secrets"
 	capi "k8s.io/api/certificates/v1beta1"
 	"math/big"
 	"time"
 )
 
-type webCaSigner struct {
-	secretManager secrets.Manager
+type CertificateAuthoritySigner struct {
+	secret *rsa.PrivateKey
+	cert   *x509.Certificate
 }
 
-func (o *webCaSigner) Check() error {
-	return nil
+func NewCertificateAuthoritySigner(privateKey, certificate []byte) (Signer, error) {
+	key, err := toRsaPriKey(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	cert, err := toX509Cert(certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CertificateAuthoritySigner{
+		secret: key,
+		cert:   cert,
+	}, nil
 }
 
-func NewCASinger(secretManager secrets.Manager) (Signer, error) {
-	return &webCaSigner{secretManager: secretManager}, nil
-}
-
-func (o *webCaSigner) Sign(ctx context.Context, cr *cmapi.CertificateRequest, log logr.Logger) ([]byte, []byte, error) {
+func (cas *CertificateAuthoritySigner) Sign(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) ([]byte, []byte, error) {
 	csr, err := toX509CSR(cr.Spec.Request)
 	if err != nil {
 		log.V(4).Error(err, "csr is invalid format")
 		return nil, nil, err
 	}
-	priKey, err := o.secretManager.GetPriKey()
-	if err != nil {
-		log.V(4).Error(err, "secrets get priKey failed")
-		return nil, nil, err
-	}
-	key, err := toRsaPriKey(priKey)
-	if err != nil {
-		log.V(4).Error(err, "priKey must be rsa")
-		return nil, nil, err
-	}
-	certPem, err := o.secretManager.GetCert()
-	if err != nil {
-		log.V(4).Error(err, "load root cert failed")
-		return nil, nil, err
-	}
-	cert, err := toX509Cert(certPem)
-	if err != nil {
-		log.V(4).Error(err, "root cert be format to X509 failed")
-		return nil, nil, err
-	}
 	ca := &CertificateAuthority{
-		Certificate: cert,
-		PrivateKey:  key,
+		Certificate: cas.cert,
+		PrivateKey:  cas.secret,
 		Backdate:    5 * time.Minute,
 	}
 	crtDER, err := ca.Sign(csr.Raw, PermissiveSigningPolicy{
